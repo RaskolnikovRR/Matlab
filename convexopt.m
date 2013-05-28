@@ -12,7 +12,8 @@ syms rowiter li;
 li = xi*yi*si*hi;
 
 
-%% CONSTRAINT1 : int(x,y,h)Q = Ps(s)
+%% CONSTRAINT1 : INTEGRATION OF Q over x,y,h = Ps(S)
+% int(x,y,h)Q = Ps(s)
 rowiter = 1;
 intmat1 = zeros(li/xi,li);
 
@@ -31,8 +32,6 @@ while(rowiter <= li/(xi*yi))
     rowiter = rowiter + 1;
 end
 
-% intmat2 = (li/xi.yi,li/xi) intmat2*(intmat1*transpose[Q]) = ( li/xi.yi ,1 ) Ps(s) = (1, si)
-
 yxQ = (intmat2*(intmat1*transpose(Q)));
 yxQm = reshape(yxQ,si,hi);
 hyxQ = sum(yxQm,2);
@@ -43,29 +42,17 @@ while k <= si
     intmat3(k,(k - 1)*si + 1:k*si) = 1;
     k = k + 1;
 end
+
 intmatC1 = intmat3*intmat2*intmat1;
-check = intmatC1*transpose(Q);
-
-vec1 = (xdel*ydel*hdel)*hyxQ;
-% vec1 = (si,1)
-vec1 = transpose(vec1);
-% vec1 = (1,si)
-
-eq3 = vec1 - Ps;
-% (1,si) = (1,si) - (1,si)
-
+% Aeq*Q = Ps = Beq
 
 %% CONSTRAINT2 - (x,y,h,s) Q  = 1
 
 intmatC2 = ones(1,li);
 % Aeq*Q = Beq = 1
 
-%% ~~~~REPLACED WITH LOWER BOUND ARG~~~~~~~~~
-% constraint3 : Q > 0
-% % % % ineqmat1 = ones(1,li);
-% % % % ineq1 = ineqmat1*transpose(Q);
-
-%% CONSTRAINT4 : int(s,h) Q  = P(y/x)*b(x) for all y,x
+%% CONSTRAINT3 : INTEGRATION OF Q over x,y = P(Y|X)*b(X)
+% int(s,h) Q  = P(y/x)*b(x) for all y,x
 % Pyx is a matrix: (xi,yi)
 % step1 : rearrange Q in order X -> Y -> S -> H
 Qxyhs = rearrange(Q,xi,yi,si,hi);
@@ -117,7 +104,7 @@ while( j<= yi)
 end
 
 
-%% CONSTRAINT5 : MUTUAL INFORMATION CONSTRAINT
+%% CONSTRAINT4 : MUTUAL INFORMATION CONSTRAINT
 % I(aPs) - I(bP(y/x) ) <= 0 step1: a,b ==> integral form of Q ==> compute intmats
 
 xyQ = (xdel*ydel)*intmat2*(intmat1*transpose(Q));
@@ -141,8 +128,6 @@ denomPs = transpose(Ps) * syxQ;
 IaPs = sdel*hdel*sum(sum(numPs.*log(numPs./denomPs)));
 
 % IbP
-
-
 
 hsQ = intmat5*(intmat4*transpose(Qxyhs));
 hsQm = reshape(shQ,yi,xi);
