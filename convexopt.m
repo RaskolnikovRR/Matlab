@@ -3,10 +3,6 @@ function [eq1,eq2,eq3,ineq2] = convexopt(p,xdel,ydel,sdel,hdel,xi,yi,si,hi,Q)
 %% PARAMETERS 
 Ps = [0.5 0.5];
 Pxy = [p 1-p;1-p p];
-xdel = 1;
-ydel = 1;
-sdel = 1;
-hdel = 1;
 
 syms rowiter li;
 li = xi*yi*si*hi;
@@ -51,9 +47,10 @@ intmatC1 = intmat3*intmat2*intmat1;
 intmatC2 = ones(1,li);
 % Aeq*Q = Beq = 1
 
-%% CONSTRAINT3 : INTEGRATION OF Q over x,y = P(Y|X)*b(X)
+
+%% To be linearized => CONSTRAINT3 : INTEGRATION OF Q over x,y = P(Y|X)*b(X)
 % int(s,h) Q  = P(y/x)*b(x) for all y,x
-% Pyx is a matrix: (xi,yi)
+% P(Y|X) is a matrix: (xi,yi)
 % step1 : rearrange Q in order X -> Y -> S -> H
 Qxyhs = rearrange(Q,xi,yi,si,hi);
 
@@ -89,6 +86,9 @@ shQ = intmat5*(intmat4*transpose(Qxyhs));
 shQm = reshape(shQ,yi,xi);
 % shQm = (yi,xi)
 
+check = (intmat5*intmat4)*transpose(Qxyhs);
+% check is definitely equal to shQ
+
 vec2 = (sdel*hdel*ydel)*sum(shQm,1);
 % vec2 = int(s,h,y)Q = b(x) = (1,xi)
 
@@ -97,11 +97,18 @@ mat1 = (sdel*hdel)*intmat5*(intmat4*transpose(Qxyhs));
 
 mat1 = reshape(mat1,yi,xi);
 
+Pyx = transpose(Pxy);
 j = 1;
 while( j<= yi)
-    eq1(j,:) = mat1(j,:) - Pxy(j,:).*vec2;
+    eq1(j,:) = mat1(j,:) - Pyx(j,:).*vec2;
     j = j + 1;
 end
+
+%% LINEAR
+% TODO: row(B*Q) ./ (A*Q) = row(Pyx)
+% B = (intmat5*intmat4)
+% A = (intmat6*intmat5*intmat4)
+
 
 
 %% CONSTRAINT4 : MUTUAL INFORMATION CONSTRAINT
