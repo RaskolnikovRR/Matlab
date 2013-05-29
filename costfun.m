@@ -1,9 +1,9 @@
 function cost = costfun(Q)
-
-%~~~ for binary variables - kappa~~
+%% COST FUNCTIN definition
 k = @(s,x,h,y) ((s-h)^2+x^2);
 
-[hi,si,xi] = deal(1);
+%% Loop to compute kappa
+hi = 1;
 i = 1;
 
 while( hi <= 2)
@@ -24,5 +24,7 @@ while( hi <= 2)
 	hi = hi + 1;
 end
 
-% INTEGRATION OVER s,x,y,h
+%% INTEGRATION OVER s,x,y,h
 cost = sum(intg);
+
+end % main
