@@ -32,14 +32,18 @@ yxQ = (intmat2*(intmat1*transpose(Q)));
 yxQm = reshape(yxQ,si,hi);
 hyxQ = sum(yxQm,2);
 
-intmat3 = zeros(hi,si*hi);
-k = 1;
-while k <= si
-    intmat3(k,(k - 1)*si + 1:k*si) = 1;
-    k = k + 1;
+intmat3 = zeros(si,si*hi);
+rowiter = 1;
+while rowiter <= si
+    coliter = 1;
+    while( coliter <= hi)
+        intmat3(rowiter + si*(hi - 1)) = 1;
+    end
+    rowiter = rowiter + 1;
 end
 
 intmatC1 = intmat3*intmat2*intmat1;
+% (si*li) = (si,si*hi)*(si*hi,si*hi*yi)*(si*hi*yi.li)
 % Aeq*Q = Ps = Beq
 
 %% CONSTRAINT2 - (x,y,h,s) Q  = 1
