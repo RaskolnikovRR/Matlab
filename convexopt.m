@@ -43,13 +43,14 @@ while rowiter <= si
 end
 
 intmatC1 = intmat3*intmat2*intmat1;
-% (si*li) = (si,si*hi)*(si*hi,si*hi*yi)*(si*hi*yi.li)
-% Aeq*Q = Ps = Beq
+% intmatC1 (si*li) = (si,si*hi)*(si*hi,si*hi*yi)*(si*hi*yi.li)
+% Aeq*Q = Ps = beq
 
 %% CONSTRAINT2 - (x,y,h,s) Q  = 1
 
 intmatC2 = xdel*ydel*hdel*sdel*ones(1,li);
-% Aeq*Q = Beq = 1
+% intmatC2 (1,li)
+% Aeq*Q = beq = 1
 
 
 %% To be linearized => CONSTRAINT3 : INTEGRATION OF Q over x,y = P(Y|X)*b(X)
