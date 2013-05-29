@@ -1,6 +1,5 @@
-function [eq1,eq2,eq3,ineq2] = convexopt(p,xdel,ydel,sdel,hdel,xi,yi,si,hi,Q)
-
-%% PARAMETERS 
+function [intmatC1,intmatC2,eq1,ineq1] = convexopt(p,xdel,ydel,sdel,hdel,xi,yi,si,hi,Q)
+%% PARAMETERS AND VARIABLE DEFINITIONS
 Ps = [0.5 0.5];
 Pxy = [p 1-p;1-p p];
 
@@ -200,7 +199,7 @@ denomP = bx * xProductP;
 
 IbP = xdel*ydel*sum(sum(productP.*log(productP./denomP)));
 
-ineq2 = IaPs - IbP;
+ineq1 = IaPs - IbP;
 
 %% LOCAL FUNCTIONS
 
