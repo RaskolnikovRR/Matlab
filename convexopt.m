@@ -37,7 +37,8 @@ rowiter = 1;
 while rowiter <= si
     coliter = 1;
     while( coliter <= hi)
-        intmat3(rowiter + si*(hi - 1)) = 1;
+        intmat3(rowiter,rowiter + si*(coliter - 1)) = 1;
+        coliter = coliter + 1;
     end
     rowiter = rowiter + 1;
 end
@@ -48,7 +49,7 @@ intmatC1 = intmat3*intmat2*intmat1;
 
 %% CONSTRAINT2 - (x,y,h,s) Q  = 1
 
-intmatC2 = ones(1,li);
+intmatC2 = xdel*ydel*hdel*sdel*ones(1,li);
 % Aeq*Q = Beq = 1
 
 
@@ -86,9 +87,45 @@ while(rowiter <= li/(si*hi*yi))
     rowiter = rowiter + 1;
 end
 
+rowiter = 1;
+intmat4a = zeros(li/hi,li);
+while(rowiter <= li/hi)
+   coliter =1;
+   while(coliter <= hi)
+       intmat4a(rowiter,rowiter + (coliter - 1)*li/hi) = 1;
+       coliter = coliter + 1;
+   end
+   rowiter = rowiter + 1;
+end
+
+rowiter = 1;
+intmat5a = zeros(li/hi/si,li/hi);
+while(rowiter <= li/hi/si)
+    coliter = 1;
+    while( coliter <= si)
+        intmat5a(rowiter,rowiter + (coliter - 1)*li/hi/si) = 1;
+        coliter = coliter + 1;
+    end
+    rowiter = rowiter + 1;
+end
+
+rowiter = 1;
+intmat6a = zeros(li/hi/si/yi,li/hi/si);
+while(rowiter <= li/hi/si/yi)
+    coliter = 1;
+    while(coliter <= yi)
+        intmat6a(rowiter,rowiter + (coliter - 1)*li/hi/si/yi) = 1;
+        coliter = coliter + 1;
+    end
+    rowiter = rowiter + 1;
+end
+
 shQ = intmat5*(intmat4*transpose(Qxyhs));
 shQm = reshape(shQ,yi,xi);
 % shQm = (yi,xi)
+
+shQa = intmat5a*(intmat4a*transpose(Q));
+shQma  = reshape(shQa,yi,xi);
 
 check = (intmat5*intmat4)*transpose(Qxyhs);
 % check is definitely equal to shQ
