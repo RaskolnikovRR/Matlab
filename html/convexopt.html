@@ -1,0 +1,533 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      --><title>convexopt</title><meta name="generator" content="MATLAB 7.10"><meta name="date" content="2013-05-29"><meta name="m-file" content="convexopt"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">PARAMETERS AND VARIABLE DEFINITIONS</a></li><li><a href="#3">CONSTRAINT1 : INTEGRATION OF Q over x,y,h = Ps(S)</a></li><li><a href="#4">CONSTRAINT2 - (x,y,h,s) Q  = 1</a></li><li><a href="#5">To be linearized =&gt; CONSTRAINT3 : INTEGRATION OF Q over x,y = P(Y|X)*b(X)</a></li><li><a href="#6">LINEAR</a></li><li><a href="#7">CONSTRAINT4 : MUTUAL INFORMATION CONSTRAINT</a></li><li><a href="#8">LOCAL FUNCTIONS</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [intmatC1,intmatC2,eq1,ineq1] = convexopt(p,xdel,ydel,sdel,hdel,xi,yi,si,hi,Q)
+</pre><h2>PARAMETERS AND VARIABLE DEFINITIONS<a name="2"></a></h2><pre class="codeinput">Ps = [0.5 0.5];
+Pxy = [p 1-p;1-p p];
+
+syms <span class="string">rowiter</span> <span class="string">li</span>;
+li = xi*yi*si*hi;
+</pre><pre class="codeoutput">Input argument "p" is undefined.
+
+Error in ==&gt; convexopt at 4
+Pxy = [p 1-p;1-p p];
+</pre><h2>CONSTRAINT1 : INTEGRATION OF Q over x,y,h = Ps(S)<a name="3"></a></h2><p>int(x,y,h)Q = Ps(s)</p><pre class="codeinput">rowiter = 1;
+intmat1 = zeros(li/xi,li);
+
+<span class="keyword">while</span>( rowiter &lt;= li/xi )
+    intmat1(rowiter,(xi*(rowiter-1)+1):xi*rowiter) =  1;
+    rowiter = rowiter + 1;
+<span class="keyword">end</span>
+
+<span class="comment">% intmat1 = (li/xi,li)</span>
+
+rowiter = 1;
+intmat2 = zeros(li/(xi*yi),li/xi);
+
+<span class="keyword">while</span>(rowiter &lt;= li/(xi*yi))
+    intmat2(rowiter,(yi*(rowiter-1)+1):yi*rowiter) = 1;
+    rowiter = rowiter + 1;
+<span class="keyword">end</span>
+
+yxQ = (intmat2*(intmat1*transpose(Q)));
+yxQm = reshape(yxQ,si,hi);
+hyxQ = sum(yxQm,2);
+
+intmat3 = zeros(si,si*hi);
+rowiter = 1;
+<span class="keyword">while</span> rowiter &lt;= si
+    coliter = 1;
+    <span class="keyword">while</span>( coliter &lt;= hi)
+        intmat3(rowiter,rowiter + si*(coliter - 1)) = 1;
+        coliter = coliter + 1;
+    <span class="keyword">end</span>
+    rowiter = rowiter + 1;
+<span class="keyword">end</span>
+
+intmatC1 = intmat3*intmat2*intmat1;
+<span class="comment">% (si*li) = (si,si*hi)*(si*hi,si*hi*yi)*(si*hi*yi.li)</span>
+<span class="comment">% Aeq*Q = Ps = Beq</span>
+</pre><h2>CONSTRAINT2 - (x,y,h,s) Q  = 1<a name="4"></a></h2><pre class="codeinput">intmatC2 = xdel*ydel*hdel*sdel*ones(1,li);
+<span class="comment">% Aeq*Q = Beq = 1</span>
+</pre><h2>To be linearized =&gt; CONSTRAINT3 : INTEGRATION OF Q over x,y = P(Y|X)*b(X)<a name="5"></a></h2><p>int(s,h) Q  = P(y/x)*b(x) for all y,x P(Y|X) is a matrix: (xi,yi) step1 : rearrange Q in order X -&gt; Y -&gt; S -&gt; H</p><pre class="codeinput">Qxyhs = rearrange(Q,xi,yi,si,hi);
+
+rowiter = 1;
+intmat4 = zeros(li/si,li);
+
+<span class="keyword">while</span>( rowiter &lt;= li/si )
+    intmat4(rowiter,(si*(rowiter-1)+1):si*rowiter) =   1;
+    rowiter = rowiter + 1;
+<span class="keyword">end</span>
+
+<span class="comment">% intmat4 = (li/si,li)</span>
+
+rowiter = 1;
+intmat5 = zeros(li/(si*hi),li/si);
+
+<span class="keyword">while</span>(rowiter &lt;= li/(si*hi))
+    intmat5(rowiter,(hi*(rowiter-1)+1):hi*rowiter) = 1;
+    rowiter = rowiter + 1;
+<span class="keyword">end</span>
+
+<span class="comment">% intmat5 = (li/si.hi,li/si)</span>
+
+rowiter = 1;
+intmat6 = zeros(li/(si*hi*yi),li/(si*hi));
+
+<span class="keyword">while</span>(rowiter &lt;= li/(si*hi*yi))
+    intmat6(rowiter,(yi*(rowiter-1)+1):yi*rowiter) = 1;
+    rowiter = rowiter + 1;
+<span class="keyword">end</span>
+
+rowiter = 1;
+intmat4a = zeros(li/hi,li);
+<span class="keyword">while</span>(rowiter &lt;= li/hi)
+   coliter =1;
+   <span class="keyword">while</span>(coliter &lt;= hi)
+       intmat4a(rowiter,rowiter + (coliter - 1)*li/hi) = 1;
+       coliter = coliter + 1;
+   <span class="keyword">end</span>
+   rowiter = rowiter + 1;
+<span class="keyword">end</span>
+
+rowiter = 1;
+intmat5a = zeros(li/hi/si,li/hi);
+<span class="keyword">while</span>(rowiter &lt;= li/hi/si)
+    coliter = 1;
+    <span class="keyword">while</span>( coliter &lt;= si)
+        intmat5a(rowiter,rowiter + (coliter - 1)*li/hi/si) = 1;
+        coliter = coliter + 1;
+    <span class="keyword">end</span>
+    rowiter = rowiter + 1;
+<span class="keyword">end</span>
+
+rowiter = 1;
+intmat6a = zeros(li/hi/si/yi,li/hi/si);
+<span class="keyword">while</span>(rowiter &lt;= li/hi/si/yi)
+    coliter = 1;
+    <span class="keyword">while</span>(coliter &lt;= yi)
+        intmat6a(rowiter,rowiter + (coliter - 1)*li/hi/si/yi) = 1;
+        coliter = coliter + 1;
+    <span class="keyword">end</span>
+    rowiter = rowiter + 1;
+<span class="keyword">end</span>
+
+shQ = intmat5*(intmat4*transpose(Qxyhs));
+shQm = reshape(shQ,yi,xi);
+<span class="comment">% shQm = (yi,xi)</span>
+
+shQa = intmat5a*(intmat4a*transpose(Q));
+shQma  = reshape(shQa,yi,xi);
+
+check = (intmat5*intmat4)*transpose(Qxyhs);
+<span class="comment">% check is definitely equal to shQ</span>
+
+vec2 = (sdel*hdel*ydel)*sum(shQm,1);
+<span class="comment">% vec2 = int(s,h,y)Q = b(x) = (1,xi)</span>
+
+mat1 = (sdel*hdel)*intmat5*(intmat4*transpose(Qxyhs));
+<span class="comment">% mat1 = int(s,h)Q</span>
+
+mat1 = reshape(mat1,yi,xi);
+
+Pyx = transpose(Pxy);
+j = 1;
+<span class="keyword">while</span>( j&lt;= yi)
+    eq1(j,:) = mat1(j,:) - Pyx(j,:).*vec2;
+    j = j + 1;
+<span class="keyword">end</span>
+</pre><h2>LINEAR<a name="6"></a></h2><p>TODO: row(B*Q) ./ (A*Q) = row(Pyx) B = (intmat5*intmat4) A = (intmat6*intmat5*intmat4)</p><h2>CONSTRAINT4 : MUTUAL INFORMATION CONSTRAINT<a name="7"></a></h2><p>I(aPs) - I(bP(y/x) ) <a href="=">0 step1: a,b ==</a> integral form of Q ==&gt; compute intmats</p><pre class="codeinput">xyQ = (xdel*ydel)*intmat2*(intmat1*transpose(Q));
+xyQm = reshape(xyQ,si,hi);
+syxQ = sum(xyQm,1);
+<span class="comment">% xyQ = (li/xi.yi , 1) syxQ = (1,hi) Ps = (1,si)</span>
+<span class="comment">% xyQm = (si,hi)</span>
+
+j = 1;
+<span class="keyword">while</span>( j&lt;= hi)
+    Ahs(:,j) = xyQm(:,j)./transpose(Ps);
+    <span class="comment">% (si,1) = (si,1) ./ (si,1)</span>
+    j = j + 1;
+<span class="keyword">end</span>
+<span class="comment">% Ahs = (si,hi)</span>
+
+numPs = xyQm;
+denomPs = transpose(Ps) * syxQ;
+<span class="comment">% (si,hi) = (si,1) * (1,hi)</span>
+
+IaPs = sdel*hdel*sum(sum(numPs.*log(numPs./denomPs)));
+
+<span class="comment">% IbP</span>
+
+hsQ = intmat5*(intmat4*transpose(Qxyhs));
+hsQm = reshape(shQ,yi,xi);
+yhsQ = (ydel*sdel*hdel)*sum(hsQm,1);
+<span class="comment">% yhsQ = (1,xi)</span>
+
+bx = transpose(yhsQ);
+<span class="comment">% bx = (xi,1)</span>
+
+j = 1;
+<span class="keyword">while</span>( j&lt;= yi)
+    productP(:,j) = Pxy(:,j).*bx;
+    j = j + 1;
+<span class="keyword">end</span>
+<span class="comment">% bx = (xi,1)</span>
+<span class="comment">% productP = (xi,yi)</span>
+
+xProductP = xdel*sum(productP,1);
+<span class="comment">% (1,yi)</span>
+denomP = bx * xProductP;
+<span class="comment">% (xi,yi) = (xi,1) * (1,yi)</span>
+
+IbP = xdel*ydel*sum(sum(productP.*log(productP./denomP)));
+
+ineq1 = IaPs - IbP;
+</pre><h2>LOCAL FUNCTIONS<a name="8"></a></h2><pre class="codeinput">    <span class="keyword">function</span> rQ = rearrange(Q,xi,yi,si,hi)
+
+        syms <span class="string">X</span> <span class="string">Y</span> <span class="string">S</span> <span class="string">H</span> <span class="string">i</span>; <span class="comment">% counters</span>
+
+        X = 1;
+        i = 1;
+        <span class="keyword">while</span> (X &lt;= xi)
+            Y = 1;
+            <span class="keyword">while</span>(Y &lt;= yi)
+                H = 1;
+                <span class="keyword">while</span>(H &lt;= hi)
+                    S = 1;
+                    <span class="keyword">while</span>(S &lt;= si)
+                        now = xi*yi*(S-1) + (H-1)*xi*yi*si + xi*(Y-1) + X;
+                        rQ(i) = Q(now);
+                        S = S + 1;
+                        i = i + 1;
+                    <span class="keyword">end</span>
+                    H = H + 1;
+                <span class="keyword">end</span>
+                Y = Y + 1;
+            <span class="keyword">end</span>
+            X = X + 1;
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+
+    <span class="keyword">function</span> v = vecinv(vec)
+
+        i = 1;
+        <span class="keyword">while</span>( i &lt;= length(vec))
+            v(i,:) = 1/vec(i)/length(vec);
+            i = i + 1;
+        <span class="keyword">end</span>
+
+
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span> <span class="comment">% main function</span>
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.10<br></p></div><!--
+##### SOURCE BEGIN #####
+function [intmatC1,intmatC2,eq1,ineq1] = convexopt(p,xdel,ydel,sdel,hdel,xi,yi,si,hi,Q)
+%% PARAMETERS AND VARIABLE DEFINITIONS
+Ps = [0.5 0.5];
+Pxy = [p 1-p;1-p p];
+
+syms rowiter li;
+li = xi*yi*si*hi;
+
+
+%% CONSTRAINT1 : INTEGRATION OF Q over x,y,h = Ps(S)
+% int(x,y,h)Q = Ps(s)
+rowiter = 1;
+intmat1 = zeros(li/xi,li);
+
+while( rowiter <= li/xi )
+    intmat1(rowiter,(xi*(rowiter-1)+1):xi*rowiter) =  1;
+    rowiter = rowiter + 1;
+end
+
+% intmat1 = (li/xi,li)
+
+rowiter = 1;
+intmat2 = zeros(li/(xi*yi),li/xi);
+
+while(rowiter <= li/(xi*yi))
+    intmat2(rowiter,(yi*(rowiter-1)+1):yi*rowiter) = 1;
+    rowiter = rowiter + 1;
+end
+
+yxQ = (intmat2*(intmat1*transpose(Q)));
+yxQm = reshape(yxQ,si,hi);
+hyxQ = sum(yxQm,2);
+
+intmat3 = zeros(si,si*hi);
+rowiter = 1;
+while rowiter <= si
+    coliter = 1;
+    while( coliter <= hi)
+        intmat3(rowiter,rowiter + si*(coliter - 1)) = 1;
+        coliter = coliter + 1;
+    end
+    rowiter = rowiter + 1;
+end
+
+intmatC1 = intmat3*intmat2*intmat1;
+% (si*li) = (si,si*hi)*(si*hi,si*hi*yi)*(si*hi*yi.li)
+% Aeq*Q = Ps = Beq
+
+%% CONSTRAINT2 - (x,y,h,s) Q  = 1
+
+intmatC2 = xdel*ydel*hdel*sdel*ones(1,li);
+% Aeq*Q = Beq = 1
+
+
+%% To be linearized => CONSTRAINT3 : INTEGRATION OF Q over x,y = P(Y|X)*b(X)
+% int(s,h) Q  = P(y/x)*b(x) for all y,x
+% P(Y|X) is a matrix: (xi,yi)
+% step1 : rearrange Q in order X -> Y -> S -> H
+Qxyhs = rearrange(Q,xi,yi,si,hi);
+
+rowiter = 1;
+intmat4 = zeros(li/si,li);
+
+while( rowiter <= li/si )
+    intmat4(rowiter,(si*(rowiter-1)+1):si*rowiter) =   1;
+    rowiter = rowiter + 1;
+end
+
+% intmat4 = (li/si,li)
+
+rowiter = 1;
+intmat5 = zeros(li/(si*hi),li/si);
+
+while(rowiter <= li/(si*hi))
+    intmat5(rowiter,(hi*(rowiter-1)+1):hi*rowiter) = 1;
+    rowiter = rowiter + 1;
+end
+
+% intmat5 = (li/si.hi,li/si)
+
+rowiter = 1;
+intmat6 = zeros(li/(si*hi*yi),li/(si*hi));
+
+while(rowiter <= li/(si*hi*yi))
+    intmat6(rowiter,(yi*(rowiter-1)+1):yi*rowiter) = 1;
+    rowiter = rowiter + 1;
+end
+
+rowiter = 1;
+intmat4a = zeros(li/hi,li);
+while(rowiter <= li/hi)
+   coliter =1;
+   while(coliter <= hi)
+       intmat4a(rowiter,rowiter + (coliter - 1)*li/hi) = 1;
+       coliter = coliter + 1;
+   end
+   rowiter = rowiter + 1;
+end
+
+rowiter = 1;
+intmat5a = zeros(li/hi/si,li/hi);
+while(rowiter <= li/hi/si)
+    coliter = 1;
+    while( coliter <= si)
+        intmat5a(rowiter,rowiter + (coliter - 1)*li/hi/si) = 1;
+        coliter = coliter + 1;
+    end
+    rowiter = rowiter + 1;
+end
+
+rowiter = 1;
+intmat6a = zeros(li/hi/si/yi,li/hi/si);
+while(rowiter <= li/hi/si/yi)
+    coliter = 1;
+    while(coliter <= yi)
+        intmat6a(rowiter,rowiter + (coliter - 1)*li/hi/si/yi) = 1;
+        coliter = coliter + 1;
+    end
+    rowiter = rowiter + 1;
+end
+
+shQ = intmat5*(intmat4*transpose(Qxyhs));
+shQm = reshape(shQ,yi,xi);
+% shQm = (yi,xi)
+
+shQa = intmat5a*(intmat4a*transpose(Q));
+shQma  = reshape(shQa,yi,xi);
+
+check = (intmat5*intmat4)*transpose(Qxyhs);
+% check is definitely equal to shQ
+
+vec2 = (sdel*hdel*ydel)*sum(shQm,1);
+% vec2 = int(s,h,y)Q = b(x) = (1,xi)
+
+mat1 = (sdel*hdel)*intmat5*(intmat4*transpose(Qxyhs));
+% mat1 = int(s,h)Q
+
+mat1 = reshape(mat1,yi,xi);
+
+Pyx = transpose(Pxy);
+j = 1;
+while( j<= yi)
+    eq1(j,:) = mat1(j,:) - Pyx(j,:).*vec2;
+    j = j + 1;
+end
+
+%% LINEAR
+% TODO: row(B*Q) ./ (A*Q) = row(Pyx)
+% B = (intmat5*intmat4)
+% A = (intmat6*intmat5*intmat4)
+
+
+
+%% CONSTRAINT4 : MUTUAL INFORMATION CONSTRAINT
+% I(aPs) - I(bP(y/x) ) <= 0 step1: a,b ==> integral form of Q ==> compute intmats
+
+xyQ = (xdel*ydel)*intmat2*(intmat1*transpose(Q));
+xyQm = reshape(xyQ,si,hi);
+syxQ = sum(xyQm,1);
+% xyQ = (li/xi.yi , 1) syxQ = (1,hi) Ps = (1,si)
+% xyQm = (si,hi)
+
+j = 1;
+while( j<= hi)
+    Ahs(:,j) = xyQm(:,j)./transpose(Ps);
+    % (si,1) = (si,1) ./ (si,1)
+    j = j + 1;
+end
+% Ahs = (si,hi)
+
+numPs = xyQm;
+denomPs = transpose(Ps) * syxQ;
+% (si,hi) = (si,1) * (1,hi)
+
+IaPs = sdel*hdel*sum(sum(numPs.*log(numPs./denomPs)));
+
+% IbP
+
+hsQ = intmat5*(intmat4*transpose(Qxyhs));
+hsQm = reshape(shQ,yi,xi);
+yhsQ = (ydel*sdel*hdel)*sum(hsQm,1);
+% yhsQ = (1,xi)
+
+bx = transpose(yhsQ);
+% bx = (xi,1)
+
+j = 1;
+while( j<= yi)
+    productP(:,j) = Pxy(:,j).*bx;
+    j = j + 1;
+end
+% bx = (xi,1)
+% productP = (xi,yi)
+
+xProductP = xdel*sum(productP,1);
+% (1,yi)
+denomP = bx * xProductP;
+% (xi,yi) = (xi,1) * (1,yi)
+
+IbP = xdel*ydel*sum(sum(productP.*log(productP./denomP)));
+
+ineq1 = IaPs - IbP;
+
+%% LOCAL FUNCTIONS
+
+    function rQ = rearrange(Q,xi,yi,si,hi)
+        
+        syms X Y S H i; % counters
+        
+        X = 1;
+        i = 1;
+        while (X <= xi)
+            Y = 1;
+            while(Y <= yi)
+                H = 1;
+                while(H <= hi)
+                    S = 1;
+                    while(S <= si)
+                        now = xi*yi*(S-1) + (H-1)*xi*yi*si + xi*(Y-1) + X;
+                        rQ(i) = Q(now);
+                        S = S + 1;
+                        i = i + 1;
+                    end
+                    H = H + 1;
+                end
+                Y = Y + 1;
+            end
+            X = X + 1;
+        end
+        
+    end
+
+    function v = vecinv(vec)
+        
+        i = 1;
+        while( i <= length(vec))
+            v(i,:) = 1/vec(i)/length(vec);
+            i = i + 1;
+        end
+        
+        
+    end
+end % main function
+
+
+##### SOURCE END #####
+--></body></html>

@@ -1,14 +1,16 @@
-function [intmatC1,intmatC2,eq1,ineq1] = convexopt(p,xdel,ydel,sdel,hdel,xi,yi,si,hi,Q)
-%% PARAMETERS AND VARIABLE DEFINITIONS
-Ps = [0.5 0.5];
-Pxy = [p 1-p;1-p p];
+function [c,ceq] = nonlcon(Ps,Pxy,Q,dels,ni)
+%% PARAMETERS
+dcell = num2cell(dels);
+[xdel,ydel,sdel,hdel] = dcell{:};
 
-syms rowiter li;
+xi = ni(1);
+yi = ni(2);
+si = ni(3);
+hi = ni(4);
+
 li = xi*yi*si*hi;
 
-
-%% CONSTRAINT1 : INTEGRATION OF Q over x,y,h = Ps(S)
-% int(x,y,h)Q = Ps(s)
+%% intmats 
 rowiter = 1;
 intmat1 = zeros(li/xi,li);
 
@@ -27,10 +29,6 @@ while(rowiter <= li/(xi*yi))
     rowiter = rowiter + 1;
 end
 
-yxQ = (intmat2*(intmat1*transpose(Q)));
-yxQm = reshape(yxQ,si,hi);
-hyxQ = sum(yxQm,2);
-
 intmat3 = zeros(si,si*hi);
 rowiter = 1;
 while rowiter <= si
@@ -41,17 +39,6 @@ while rowiter <= si
     end
     rowiter = rowiter + 1;
 end
-
-intmatC1 = intmat3*intmat2*intmat1;
-% intmatC1 (si*li) = (si,si*hi)*(si*hi,si*hi*yi)*(si*hi*yi.li)
-% Aeq*Q = Ps = Beq
-
-%% CONSTRAINT2 - (x,y,h,s) Q  = 1
-
-intmatC2 = xdel*ydel*hdel*sdel*ones(1,li);
-%
-% Aeq*Q = Beq = 1
-
 
 %% To be linearized => CONSTRAINT3 : INTEGRATION OF Q over x,y = P(Y|X)*b(X)
 % int(s,h) Q  = P(y/x)*b(x) for all y,x
@@ -90,12 +77,12 @@ end
 rowiter = 1;
 intmat4a = zeros(li/hi,li);
 while(rowiter <= li/hi)
-   coliter =1;
-   while(coliter <= hi)
-       intmat4a(rowiter,rowiter + (coliter - 1)*li/hi) = 1;
-       coliter = coliter + 1;
-   end
-   rowiter = rowiter + 1;
+    coliter =1;
+    while(coliter <= hi)
+        intmat4a(rowiter,rowiter + (coliter - 1)*li/hi) = 1;
+        coliter = coliter + 1;
+    end
+    rowiter = rowiter + 1;
 end
 
 rowiter = 1;
@@ -124,7 +111,7 @@ shQ = intmat5*(intmat4*transpose(Qxyhs));
 shQm = reshape(shQ,yi,xi);
 % shQm = (yi,xi)
 
-shQa = intmat5a*(intmat4a*transpose(Q));
+shQa = intmat5a*(intmat4a*Q);
 shQma  = reshape(shQa,yi,xi);
 
 check = (intmat5*intmat4)*transpose(Qxyhs);
@@ -155,19 +142,15 @@ end
 %% CONSTRAINT4 : MUTUAL INFORMATION CONSTRAINT
 % I(aPs) - I(bP(y/x) ) <= 0 step1: a,b ==> integral form of Q ==> compute intmats
 
-xyQ = (xdel*ydel)*intmat2*(intmat1*transpose(Q));
+xyQ = (xdel*ydel)*intmat2*(intmat1*Q);
 xyQm = reshape(xyQ,si,hi);
 syxQ = sum(xyQm,1);
 % xyQ = (li/xi.yi , 1) syxQ = (1,hi) Ps = (1,si)
 % xyQm = (si,hi)
 
-j = 1;
-while( j<= hi)
-    Ahs(:,j) = xyQm(:,j)./transpose(Ps);
-    % (si,1) = (si,1) ./ (si,1)
-    j = j + 1;
-end
-% Ahs = (si,hi)
+repPs = repmat(transpose(Ps),1,hi);
+Ahs = xyQm ./ repPs;
+% Ahs = (si,hi) = a(h/s)
 
 numPs = xyQm;
 denomPs = transpose(Ps) * syxQ;
@@ -193,6 +176,9 @@ end
 % bx = (xi,1)
 % productP = (xi,yi)
 
+repBx = repmat(bx,1,yi)
+productP = 
+
 xProductP = xdel*sum(productP,1);
 % (1,yi)
 denomP = bx * xProductP;
@@ -201,6 +187,11 @@ denomP = bx * xProductP;
 IbP = xdel*ydel*sum(sum(productP.*log(productP./denomP)));
 
 ineq1 = IaPs - IbP;
+
+%% Ceq,C
+
+ceq = eq1(:);
+c = ineq1;
 
 %% LOCAL FUNCTIONS
 
@@ -241,5 +232,5 @@ ineq1 = IaPs - IbP;
         
         
     end
-end % main function
 
+end % main
