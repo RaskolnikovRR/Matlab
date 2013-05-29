@@ -1,23 +1,21 @@
 function [xdel,ydel,sdel,hdel,xi,yi,si,hi,iRes,F] = intbymat4(f,xmin,xmax,ymin,ymax,smin,smax,hmin,hmax,xcuts,ycuts,scuts,hcuts)
-
-syms xdel ydel sdel hdel i;
-syms h s x y;
-syms hi si xi yi;
-
+%% dels calculation
 ydel = (ymax -ymin)/ycuts;
 xdel = (xmax - xmin)/xcuts;
 sdel = (smax -smin)/scuts;
 hdel = (hmax - hmin)/hcuts;
 
+%% loop variables
 i = 1;
 [hi,si,xi,yi] = deal(0);
 
-% initialization
+%% initialization
 h1 = hmin; h2 = h1 + hdel;
 s1 = smin; s2 = s1 + sdel;
 x1 = xmin; x2 = x1 + xdel;
 y1 = ymin; y2 = y1 + ydel;
 
+%% loop to calculate function values
 while h2 <= hmax
     h = avg(h1,h2);
     s1 = smin; s2 = s1 + sdel; si = 0;
@@ -54,9 +52,10 @@ while h2 <= hmax
     hi = hi + 1;
 end
 
-length(F)
+length(F);
 iRes = (xdel*ydel*hdel*sdel)*sum(F);
 
+%% LOCAL FUNCTIONS
     function [l u] = varupdate(del,u)
         l = u;
         u = l + del;
@@ -66,4 +65,4 @@ iRes = (xdel*ydel*hdel*sdel)*sum(F);
         m = (a+b)/2;
     end
 
-end
+end % main
