@@ -29,5 +29,5 @@ beq = cat(1,transpose(Ps),[1],zeros(xi*yi,1));
 options = optimset('Algorithm','interior-point');
 [lb,x0] = deal(zeros(xi*yi*si*hi,1));
 [x fval] = fmincon(@(Q) costfun(Q),x0,[],[],Aeq,beq,lb,[],@(Q) nonlcon(Ps,Pxy,Q,dels,ni) ,options);
-
+fval
 end % main
