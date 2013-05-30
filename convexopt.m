@@ -1,4 +1,4 @@
-function [intmatC1,intmatC2] = convexopt(xdel,ydel,sdel,hdel,xi,yi,si,hi,Q)
+function [intmatC1,intmatC2,intmatC3] = convexopt(xdel,ydel,sdel,hdel,xi,yi,si,hi,Q,Pxy)
 %% PARAMETERS AND VARIABLE DEFINITIONS
 syms rowiter li;
 li = xi*yi*si*hi;
@@ -23,10 +23,6 @@ while(rowiter <= li/(xi*yi))
     rowiter = rowiter + 1;
 end
 
-yxQ = (intmat2*(intmat1*transpose(Q)));
-yxQm = reshape(yxQ,si,hi);
-hyxQ = sum(yxQm,2);
-
 intmat3 = zeros(si,si*hi);
 rowiter = 1;
 while rowiter <= si
@@ -48,6 +44,57 @@ intmatC2 = xdel*ydel*hdel*sdel*ones(1,li);
 % intmatC2 (1,li)
 % Aeq*Q = beq = 1
 
+%% CONSTRAINT3 : INTEGRATION OF Q over x,y = P(Y|X)*b(X)
+% int(s,h) Q  = P(y/x)*b(x) for all y,x
+% P(Y|X) is a matrix: (xi,yi)
+% step1 : rearrange Q in order X -> Y -> S -> H
+
+rowiter = 1;
+intmat4 = zeros(li/hi,li);
+while(rowiter <= li/hi)
+    coliter =1;
+    while(coliter <= hi)
+        intmat4(rowiter,rowiter + (coliter - 1)*li/hi) = 1;
+        coliter = coliter + 1;
+    end
+    rowiter = rowiter + 1;
+end
+
+rowiter = 1;
+intmat5 = zeros(li/hi/si,li/hi);
+while(rowiter <= li/hi/si)
+    coliter = 1;
+    while( coliter <= si)
+        intmat5(rowiter,rowiter + (coliter - 1)*li/hi/si) = 1;
+        coliter = coliter + 1;
+    end
+    rowiter = rowiter + 1;
+end
+
+rowiter = 1;
+intmat6 = zeros(li/hi/si/yi,li/hi/si);
+while(rowiter <= li/hi/si/yi)
+    coliter = 1;
+    while(coliter <= yi)
+        intmat6(rowiter,rowiter + (coliter - 1)*li/hi/si/yi) = 1;
+        coliter = coliter + 1;
+    end
+    rowiter = rowiter + 1;
+end
+
+intmatC3a = (ydel*sdel*hdel)*(intmat6*intmat5*intmat4);
+%( li/hi/si/yi,li)  = (li/hi/si/yi,li/hi/si)*(li/hi/si,li/hi) * (li/hi,li)
+% (xi,li)
+
+vecPxy = Pxy(:);
+diagPxy = zeros(xi*yi,xi*yi);
+diagPxy = diag(vecPxy,0);
+
+repBX = repmat( diag(ones(1,xi),0),yi,1);
+intmatC3 = diagPxy*repBX*intmatC3a;
+% (xiyi,li) = (xiyi,xiyi)*(xiyi,xi)*(xi,li)
+
+intmatC3 = intmatC3 - intmat5*intmat4;
 
 %% LOCAL FUNCTIONS
 
