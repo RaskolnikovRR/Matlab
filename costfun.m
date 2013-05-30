@@ -1,7 +1,13 @@
 function cost = costfun(Q)
 %% COST FUNCTIN definition
-k = @(s,x,h,y) ((s-h)^2+x^2);
-
+function k = kk(s,h)
+if s == h
+    k = 0;
+else 
+    k = 1;
+end
+end
+    
 %% Loop to compute kappa
 hi = 1;
 i = 1;
@@ -13,7 +19,7 @@ while( hi <= 2)
 		while( yi <= 2)
 			xi = 1;
 			while( xi <= 2)
-				intg(i) = k(si,xi,hi,yi)*Q(i);
+				intg(i) = kk(si,hi)*Q(i);
 				i = i + 1;
 				xi = xi + 1;
 			end
