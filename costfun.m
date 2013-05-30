@@ -13,7 +13,7 @@ hi = 1;
 i = 1;
 
 while( hi <= 2)
-	si = 1;
+	si = 1; 
 	while( si <= 2)
 		yi = 1;
 		while( yi <= 2)
