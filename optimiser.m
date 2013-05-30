@@ -4,7 +4,7 @@ function [xA,fvalA] = optimiser()
 p = 0.1;
 xA = [];
 fvalA = [];
-
+ 
 while p < 1
     Ps = [0.5 0.5];
     Pxy = [p 1-p;1-p p];
