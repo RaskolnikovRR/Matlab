@@ -11,6 +11,9 @@ hi = ni(4);
 li = xi*yi*si*hi;
 
 %% INTMATS 
+% step1 : rearrange Q in order X -> Y -> S -> H
+Qxyhs = rearrange(Q,xi,yi,si,hi);
+
 rowiter = 1;
 intmat1 = zeros(li/xi,li);
 
@@ -40,12 +43,6 @@ while rowiter <= si
     rowiter = rowiter + 1;
 end
 
-%% To be linearized => CONSTRAINT3 : INTEGRATION OF Q over x,y = P(Y|X)*b(X)
-% int(s,h) Q  = P(y/x)*b(x) for all y,x
-% P(Y|X) is a matrix: (xi,yi)
-% step1 : rearrange Q in order X -> Y -> S -> H
-Qxyhs = rearrange(Q,xi,yi,si,hi);
-
 rowiter = 1;
 intmat4 = zeros(li/si,li);
 
@@ -69,79 +66,9 @@ end
 rowiter = 1;
 intmat6 = zeros(li/(si*hi*yi),li/(si*hi));
 
-while(rowiter <= li/(si*hi*yi))
-    intmat6(rowiter,(yi*(rowiter-1)+1):yi*rowiter) = 1;
-    rowiter = rowiter + 1;
-end
-
-rowiter = 1;
-intmat4a = zeros(li/hi,li);
-while(rowiter <= li/hi)
-    coliter =1;
-    while(coliter <= hi)
-        intmat4a(rowiter,rowiter + (coliter - 1)*li/hi) = 1;
-        coliter = coliter + 1;
-    end
-    rowiter = rowiter + 1;
-end
-
-rowiter = 1;
-intmat5a = zeros(li/hi/si,li/hi);
-while(rowiter <= li/hi/si)
-    coliter = 1;
-    while( coliter <= si)
-        intmat5a(rowiter,rowiter + (coliter - 1)*li/hi/si) = 1;
-        coliter = coliter + 1;
-    end
-    rowiter = rowiter + 1;
-end
-
-rowiter = 1;
-intmat6a = zeros(li/hi/si/yi,li/hi/si);
-while(rowiter <= li/hi/si/yi)
-    coliter = 1;
-    while(coliter <= yi)
-        intmat6a(rowiter,rowiter + (coliter - 1)*li/hi/si/yi) = 1;
-        coliter = coliter + 1;
-    end
-    rowiter = rowiter + 1;
-end
-
-shQ = intmat5*(intmat4*transpose(Qxyhs));
-shQm = reshape(shQ,yi,xi);
-% shQm = (yi,xi)
-
-shQa = intmat5a*(intmat4a*Q);
-shQma  = reshape(shQa,yi,xi);
-
-check = (intmat5*intmat4)*transpose(Qxyhs);
-% check is definitely equal to shQ
-
-vec2 = (sdel*hdel*ydel)*sum(shQm,1);
-% vec2 = int(s,h,y)Q = b(x) = (1,xi)
-
-mat1 = (sdel*hdel)*intmat5*(intmat4*transpose(Qxyhs));
-% mat1 = int(s,h)Q
-
-mat1 = reshape(mat1,yi,xi);
-
-Pyx = transpose(Pxy);
-j = 1;
-while( j<= yi)
-    eq1(j,:) = mat1(j,:) - Pyx(j,:).*vec2;
-    j = j + 1;
-end
-
-%% LINEAR
-% TODO: row(B*Q) ./ (A*Q) = row(Pyx)
-% B = (intmat5*intmat4)
-% A = (intmat6*intmat5*intmat4)
-
-
 
 %% CONSTRAINT4 : MUTUAL INFORMATION CONSTRAINT
 % I(aPs) - I(bP(y/x) ) <= 0 step1: a,b ==> integral form of Q ==> compute intmats
-
 xyQ = (xdel*ydel)*intmat2*(intmat1*Q);
 xyQm = reshape(xyQ,si,hi);
 syxQ = sum(xyQm,1);
@@ -159,6 +86,9 @@ denomPs = transpose(Ps) * syxQ;
 IaPs = sdel*hdel*sum(sum(numPs.*log(numPs./denomPs)));
 
 % IbP
+shQ = intmat5*(intmat4*transpose(Qxyhs));
+shQm = reshape(shQ,yi,xi);
+% shQm = (yi,xi)
 
 hsQ = intmat5*(intmat4*transpose(Qxyhs));
 hsQm = reshape(shQ,yi,xi);
@@ -182,7 +112,7 @@ ineq1 = IaPs - IbP;
 
 %% Ceq,C
 
-ceq = eq1(:);
+ceq = [];
 c = ineq1;
 
 %% LOCAL FUNCTIONS
