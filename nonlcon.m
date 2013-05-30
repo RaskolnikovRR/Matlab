@@ -9,7 +9,6 @@ si = ni(3);
 hi = ni(4);
 
 li = xi*yi*si*hi;
-
 %% INTMATS 
 % step1 : rearrange Q in order X -> Y -> S -> H
 Qxyhs = rearrange(Q,xi,yi,si,hi);
