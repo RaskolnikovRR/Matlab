@@ -1,4 +1,4 @@
-function [intmatC1,intmatC2,intmatC3] = convexopt(xdel,ydel,sdel,hdel,xi,yi,si,hi,Q,Pxy)
+function [intmatC1,intmatC2,intmatC3] = convexopt(xdel,ydel,sdel,hdel,xi,yi,si,hi,Pxy)
 %% PARAMETERS AND VARIABLE DEFINITIONS
 syms rowiter li;
 li = xi*yi*si*hi;
