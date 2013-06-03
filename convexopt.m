@@ -34,7 +34,7 @@ while rowiter <= si
     rowiter = rowiter + 1;
 end
 
-intmatC1 = intmat3*intmat2*intmat1;
+intmatC1 = (xdel*ydel*hdel)*intmat3*intmat2*intmat1;
 % intmatC1 (si*li) = (si,si*hi)*(si*hi,si*hi*yi)*(si*hi*yi.li)
 % Aeq*Q = Ps = beq
 
