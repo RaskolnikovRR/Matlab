@@ -12,59 +12,6 @@ li = xi*yi*si*hi;
 
 [intmat1 intmat2 intmat3 intmat4 intmat5 intmat6] = intmats{:};
 
-% %% INTMATS 
-% % step1 : rearrange Q in order X -> Y -> S -> H
-% 
-% rowiter = 1;
-% intmat1 = zeros(li/xi,li);
-% 
-% while( rowiter <= li/xi )
-%     intmat1(rowiter,(xi*(rowiter-1)+1):xi*rowiter) =  1;
-%     rowiter = rowiter + 1;
-% end
-% 
-% % intmat1 = (li/xi,li)
-% 
-% rowiter = 1;
-% intmat2 = zeros(li/(xi*yi),li/xi);
-% 
-% while(rowiter <= li/(xi*yi))
-%     intmat2(rowiter,(yi*(rowiter-1)+1):yi*rowiter) = 1;
-%     rowiter = rowiter + 1;
-% end
-% 
-% intmat3 = zeros(si,si*hi);
-% rowiter = 1;
-% while rowiter <= si
-%     coliter = 1;
-%     while( coliter <= hi)
-%         intmat3(rowiter,rowiter + si*(coliter - 1)) = 1;
-%         coliter = coliter + 1;
-%     end
-%     rowiter = rowiter + 1;
-% end
-% 
-% rowiter = 1;
-% intmat4 = zeros(li/si,li);
-% 
-% while( rowiter <= li/si )
-%     intmat4(rowiter,(si*(rowiter-1)+1):si*rowiter) =   1;
-%     rowiter = rowiter + 1;
-% end
-% 
-% % intmat4 = (li/si,li)
-% 
-% rowiter = 1;
-% intmat5 = zeros(li/(si*hi),li/si);
-% 
-% while(rowiter <= li/(si*hi))
-%     intmat5(rowiter,(hi*(rowiter-1)+1):hi*rowiter) = 1;
-%     rowiter = rowiter + 1;
-% end
-% 
-% % intmat5 = (li/si.hi,li/si)
-% 
-
 %% CONSTRAINT4 : MUTUAL INFORMATION CONSTRAINT
 % I(aPs) - I(bP(y/x) ) <= 0 step1: a,b ==> integral form of Q ==> compute intmats
 Qxyhs = rearrange(Q,xi,yi,si,hi);
