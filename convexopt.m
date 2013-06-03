@@ -1,4 +1,4 @@
-function [intmatC1,intmatC2,intmatC3] = convexopt(xdel,ydel,sdel,hdel,xi,yi,si,hi,Pxy)
+function [intmats,intmatC1,intmatC2,intmatC3] = convexopt(xdel,ydel,sdel,hdel,xi,yi,si,hi,Pxy)
 %% PARAMETERS AND VARIABLE DEFINITIONS
 syms rowiter li;
 li = xi*yi*si*hi;
@@ -95,6 +95,9 @@ intmatC3 = diagPxy*repBX*intmatC3a;
 % (xiyi,li) = (xiyi,xiyi)*(xiyi,xi)*(xi,li)
 
 intmatC3 = intmatC3 - intmat5*intmat4;
+
+%% pass back intmats
+intmats = {intmat1 intmat2 intmat3 intmat4 intmat5 intmat6};
 
 %% LOCAL FUNCTIONS
 
