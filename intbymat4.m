@@ -1,4 +1,8 @@
 function [xdel,ydel,sdel,hdel,xi,yi,si,hi,iRes,F] = intbymat4(f,xmin,xmax,ymin,ymax,smin,smax,hmin,hmax,xcuts,ycuts,scuts,hcuts)
+%% Bug list
+% when xmax = 10, innermost while loop ends before last iteration of
+% x2 <= xmax
+
 %% dels calculation
 ydel = (ymax -ymin)/ycuts;
 xdel = (xmax - xmin)/xcuts;
