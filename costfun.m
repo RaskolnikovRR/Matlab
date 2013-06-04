@@ -1,33 +1,33 @@
-function cost = costfun(Q)
-%% COST FUNCTIN definition
-function k = kk(s,h)
-if s == h
-    k = 0;
-else 
-    k = 1;
-end
-end
-    
+function cost = costfun(Q,dels,mins,maxs)
+%% cost function definition
+kappa = @(x,y,s,h) ((s-h)^2+x^2);
+
 %% Loop to compute kappa
-hi = 1;
+dels = num2cell(dels);
+
+[xdel ydel sdel hdel] = dels{:};
+[xmin ymin smin hmin] = mins{:};
+[xmax ymax smax hmax] = maxs{:};
+
+hi = hmin + hdel;
 i = 1;
 
-while( hi <= 2)
-	si = 1; 
-	while( si <= 2)
-		yi = 1;
-		while( yi <= 2)
-			xi = 1;
-			while( xi <= 2)
-				intg(i) = kk(si,hi)*Q(i);
+while( hi <= hmax)
+	si = smin + sdel; 
+	while( si <= smax)
+		yi = ymin + ydel;
+		while( yi <= ymax)
+			xi = xmin + xdel;
+			while( xi <= xmax)
+				intg(i) = kappa(xi,yi,si,hi)*Q(i);
 				i = i + 1;
-				xi = xi + 1;
+				xi = xi + xdel;
 			end
-			yi = yi + 1;
+			yi = yi + ydel;
 		end
-		si = si + 1;
+		si = si + sdel;
 	end
-	hi = hi + 1;
+	hi = hi + hdel;
 end
 
 %% INTEGRATION OVER s,x,y,h
