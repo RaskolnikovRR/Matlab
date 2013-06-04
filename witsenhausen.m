@@ -1,8 +1,10 @@
-function [x fval] = witsenhausen()
+function [x fval] = witsenhausen(small,large,gap)
+
+tic;
 %% function definition and intervals
-[xmin,ymin,hmin,smin] = deal(-3);
-[xmax,smax,hmax,ymax] = deal(3);
-[xcuts,ycuts,scuts,hcuts] = deal(5);
+[xmin,ymin,hmin,smin] = deal(small);
+[xmax,smax,hmax,ymax] = deal(large);
+[xcuts,ycuts,scuts,hcuts] = deal(gap);
 
 cutscell = num2cell([xcuts ycuts scuts hcuts]);
 [xi yi si hi] = cutscell{:};
@@ -43,6 +45,11 @@ options = optimset('Algorithm','interior-point','Display','final-detailed','MaxF
 [lb x0] = deal(zeros(xi*yi*si*hi,1));
 [x fval] = fmincon(@(Q) costfun(Q,dels,mins,maxs),x0,[],[],Aeq,beq,lb,[],@(Q) nonlcon(Ps,Pxy,Q,dels,ni,intmats) ,options);
 
+% compact display
+x = x';
+
+% alert user
+figure();
 %% NONLCON
 function [c,ceq] = nonlcon(Ps,Pxy,Q,dels,ni,intmats)
 %% PARAMETERS
@@ -292,5 +299,5 @@ intmats = {intmat1 intmat2 intmat3 intmat4 intmat5 intmat6};
         
     end
 end % main function
-
+toc;
 end % witsenhausen
