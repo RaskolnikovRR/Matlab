@@ -1,4 +1,4 @@
-function [J_bar] = witsenhausen(f1,f2,sigma,k)
+function [J_bar] = witsenhausencost(f1,f2,sigma,k)
 
 % f1 f2 ==> user input of functions f,g 
 % example: for f = sin, input f1 should be '@(x) sin(x)'
