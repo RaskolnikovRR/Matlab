@@ -1,5 +1,6 @@
-function [c,ceq] = nonlcon(Ps,Pxy,Q,dels,ni,intmats)
+function [c,ceq] = nonlcon(cvar,Ps,Pxy,Q,dels,ni,intmats)
 %% PARAMETERS
+% cvar = channel sigma
 dcell = num2cell(dels);
 [xdel,ydel,sdel,hdel] = dcell{:};
 
@@ -45,16 +46,16 @@ yhsQ = (ydel*sdel*hdel)*sum(hsQm,1);
 bx = transpose(yhsQ);
 % bx = (xi,1)
 
-repBx = repmat(bx,1,yi);
+repBx = repmat(bx,1,cvar);
 productP = Pxy .* repBx;
 
 xProductP = xdel*sum(productP,1);
-% (1,yi)
+% (1,cvar)
 denomP = bx * xProductP;
-% (xi,yi) = (xi,1) * (1,yi)
+% (xi,cvar) = (xi,1) * (1,cvar)
 
 IbP = xdel*ydel*sum(sum(productP.*log2(productP./denomP)));
-
+    
 ineq1 = IaPs - IbP;
 
 %% Ceq,C
