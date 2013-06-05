@@ -1,9 +1,8 @@
-function [intmats,intmatC1,intmatC2,intmatC3] = convexopt(sig,xdel,ydel,sdel,hdel,xi,yi,si,hi,Pxy)
+function [intmats,intmatC1,intmatC2,intmatC3] = convexopt(ysig,xdel,ydel,sdel,hdel,xi,yi,si,hi,Pxy)
 %% PARAMETERS AND VARIABLE DEFINITIONS
 % cvar = channel sigma
 syms rowiter li;
 li = xi*yi*si*hi;
-ysig = yi + 6*sig;
 
 %% CONSTRAINT1 : INTEGRATION OF Q over x,y,h = Ps(S)
 % int(x,y,h)Q = Ps(s)
@@ -89,10 +88,10 @@ intmatC3a = (ydel*sdel*hdel)*(intmat6*intmat5*intmat4);
 % (xi,li)
 
 vecPxy = Pxy(:);
-diagPxy = zeros(xi*cvar,xi*cvar);
+diagPxy = zeros(xi*ysig,xi*ysig);
 diagPxy = diag(vecPxy,0);
 
-repBX = repmat( diag(ones(1,xi),0),cvar,1);
+repBX = repmat( diag(ones(1,xi),0),ysig,1);
 intmatC3 = diagPxy*repBX*intmatC3a;
 % (xi*ysig,li) = (xi*ysig,xi*ysig)*(xi*ysig,xi)*(xi,li)
 
